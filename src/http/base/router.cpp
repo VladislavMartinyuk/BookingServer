@@ -1,14 +1,14 @@
 #include "router.h"
 
-#include "shared.h"
-
-#include <iostream>
+#include "middleware/requestloggingmiddleware.h"
 
 using namespace http;
 
 Router::Router()
     : m_head(std::make_unique<Node>())
-{}
+{
+    m_globalRequestMiddleware.push_back(std::make_unique<RequestLoggingMiddleware>());
+}
 
 void Router::addRoute(const std::string &method, const std::string &uri, HandleMethod &&handler)
 {
@@ -54,10 +54,45 @@ AwaitableStringResponse Router::processRequest(const StringRequest &request)
     }
 
     if (current && current->handler) {
+        for (const auto &middleware : m_globalRequestMiddleware) {
+            middleware->process(request);
+        }
+
+        if (!current->localMiddlewares.empty()) {
+            for (const auto &middleware : current->localMiddlewares) {
+                middleware->process(request);
+            }
+        }
+
         co_return co_await current->handler(std::move(request), std::move(params));
     }
 
-    co_return StringResponse{};
+    StringResponse notFound;
+    notFound.result(boost::beast::http::status::not_found);
+    notFound.version(11);
+    notFound.set(boost::beast::http::field::content_type, "text/plain");
+    notFound.body() = "Not Found";
+    notFound.prepare_payload();
+    co_return notFound;
+}
+
+void Router::registerLocalMiddleware(const std::string &method,
+                                     const std::string &uri,
+                                     std::unique_ptr<IRequestMiddleware> middleware)
+{
+    auto splittedUri = Utils::splitString(uri, '/');
+    splittedUri.push_back(method);
+    auto current = m_head.get();
+    for (const auto &field : splittedUri) {
+        if (current->staticHandlers.contains(field)) {
+            current = current->staticHandlers[field].get();
+        } else if (current->dynamicChild) {
+            current = current->dynamicChild.get();
+        }
+    }
+    if (current && current->handler) {
+        current->localMiddlewares.push_back(std::move(middleware));
+    }
 }
 
 bool Router::isDynamicUriField(std::string_view field)

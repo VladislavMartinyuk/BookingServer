@@ -3,14 +3,21 @@
 
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
-
 #include <vector>
+
+#include "variantvalue.h"
 
 namespace http {
 
 using StringResponse = boost::beast::http::response<boost::beast::http::string_body>;
 using StringRequest = boost::beast::http::request<boost::beast::http::string_body>;
 using AwaitableStringResponse = boost::asio::awaitable<StringResponse>;
+
+struct URIParams
+{
+    std::unordered_map<std::string, VariantValue> routeValue;
+    std::unordered_map<std::string, VariantValue> queryValue;
+};
 
 } // namespace http
 

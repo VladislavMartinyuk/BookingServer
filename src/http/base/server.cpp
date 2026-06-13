@@ -25,6 +25,8 @@ Server &Server::port(unsigned short port)
 
 void Server::start()
 {
+    m_apiManager.registerRoutes();
+
     setupAcceptor();
     waitSignals();
 
@@ -53,6 +55,11 @@ void Server::stop()
     m_ioGuard.reset();
     m_signalsSet.clear();
     m_ioc.stop();
+}
+
+std::shared_ptr<Router> Server::router() const
+{
+    return m_router;
 }
 
 Server::Server()

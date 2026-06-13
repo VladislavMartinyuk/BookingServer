@@ -4,13 +4,14 @@
 #include <functional>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
-#include "shared.h"
-#include "variantvalue.h"
+#include "http/shared/shared.h"
+#include "http/shared/variantvalue.h"
+#include "middleware/irequestmiddleware.h"
 
 namespace http {
 
-struct URIParams;
 struct Node;
 
 using HandleMethod = std::function<AwaitableStringResponse(StringRequest, URIParams)>;
@@ -22,9 +23,13 @@ public:
 
     void addRoute(const std::string &method, const std::string &uri, HandleMethod &&handler);
     AwaitableStringResponse processRequest(const StringRequest &request);
+    void registerLocalMiddleware(const std::string &method,
+                                 const std::string &uri,
+                                 std::unique_ptr<IRequestMiddleware> middleware);
 
 private:
     std::unique_ptr<Node> m_head;
+    std::vector<std::unique_ptr<IRequestMiddleware>> m_globalRequestMiddleware;
 
     bool isDynamicUriField(std::string_view field);
     Node *createStaticUriNode(const std::string &field, Node *current);
@@ -38,12 +43,7 @@ struct Node
     std::unique_ptr<Node> dynamicChild;
     HandleMethod handler;
     std::string dynamicFieldName;
-};
-
-struct URIParams
-{
-    std::unordered_map<std::string, VariantValue> routeValue;
-    std::unordered_map<std::string, VariantValue> queryValue;
+    std::vector<std::unique_ptr<IRequestMiddleware>> localMiddlewares;
 };
 
 } // namespace http

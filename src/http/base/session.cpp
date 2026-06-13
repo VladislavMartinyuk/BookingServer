@@ -1,5 +1,7 @@
 #include "session.h"
 
+#include "server.h"
+
 using namespace http;
 
 Session::Session(const std::shared_ptr<Router> &router, asio::ip::tcp::socket socket)
@@ -24,10 +26,7 @@ asio::awaitable<void> Session::loop()
             beast::http::request<beast::http::string_body> request;
             co_await beast::http::async_read(m_stream, buffer, request);
 
-            beast::http::response<beast::http::string_body> response;
-            response.body() = R"({"Hello": "world"})";
-            response.set(beast::http::field::content_type, "application/json");
-            response.prepare_payload();
+            auto response = co_await Server::instance().router()->processRequest(request);
 
             bool keep_alive = response.keep_alive();
 
