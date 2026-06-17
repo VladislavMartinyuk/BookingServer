@@ -1,0 +1,44 @@
+
+
+services:
+    db:
+        image: mariadb:13.0.1-resolute-rc
+        container_name: server_db
+        restart: unless-stopped
+        environment:
+            - MARIADB_ROOT_PASSWORD
+            - MARIADB_DATABASE
+            - MARIADB_USER
+            - MARIADB_PASSWORD
+        ports:
+            - "${MARIADB_PORT}:${MARIADB_PORT}"
+        volumes:
+            - mariadb_data:/var/lib/mysql
+        healthcheck:
+            test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+            interval: 5s
+            timeout: 3s
+            retries: 10
+            start_period: 15s
+
+    backend:
+        image: backend:1.0
+        container_name: booking_server
+        depends_on:
+            db:
+                condition: service_healthy
+        build:
+            context: .
+            dockerfile: Dockerfile
+        environment:
+            DB_NAME: ${MARIADB_DATABASE}
+            DB_USER: ${MARIADB_USER}
+            DB_PASS: ${MARIADB_PASSWORD}
+            HTTP_IO_SERVER_THREADS_COUNT: ${HTTP_IO_SERVER_THREADS_COUNT}
+            HTTP_CPU_SERVER_THREADS_COUNT: ${HTTP_CPU_SERVER_THREADS_COUNT}
+            DB_CONNECTIONS_COUNT: ${DB_CONNECTIONS_COUNT}
+        ports:
+            - "8080:8080"
+
+volumes:
+    mariadb_data:

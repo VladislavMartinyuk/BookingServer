@@ -13,7 +13,7 @@ class ApiManager
 public:
     ApiManager();
 
-    void registerRoutes();
+    void registerRoutes() const;
 
 private:
     std::vector<std::unique_ptr<IRequestHandler>> m_v1Handlers;

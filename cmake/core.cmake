@@ -1,7 +1,8 @@
 set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED CONFIG)
 find_package(spdlog REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 add_library(BookingCore
     ${SRC}/http/base/server.h ${SRC}/http/base/server.cpp
@@ -15,7 +16,10 @@ add_library(BookingCore
     ${SRC}/http/api/apimanager.h
     ${SRC}/http/api/apimanager.cpp
     ${SRC}/http/api/v1/usershandler.h ${SRC}/http/api/v1/usershandler.cpp
+    ${SRC}/appenv.h  ${SRC}/appenv.cpp
 )
 
 target_include_directories(BookingCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(BookingCore PUBLIC Boost::boost spdlog::spdlog)
+target_link_libraries(BookingCore PUBLIC Boost::boost spdlog::spdlog OpenSSL::Crypto OpenSSL::SSL Boost::process
+    Boost::charconv
+)

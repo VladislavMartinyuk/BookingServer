@@ -9,7 +9,7 @@ ApiManager::ApiManager()
     m_v1Handlers.push_back(std::make_unique<v1::UsersHandler>());
 }
 
-void ApiManager::registerRoutes()
+void ApiManager::registerRoutes() const
 {
     for (const auto &handler : m_v1Handlers) {
         handler->registerRoutes();
