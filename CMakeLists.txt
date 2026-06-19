@@ -7,6 +7,11 @@ project(BookingServer LANGUAGES CXX)
 
 include(cmake/core.cmake)
 
+target_sources(BookingCore
+  PRIVATE
+    src/db/dbmanager.cpp
+)
+
 add_executable(BookingServer src/main.cpp)
 
 target_link_libraries(BookingServer PRIVATE BookingCore)

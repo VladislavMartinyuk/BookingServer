@@ -17,6 +17,10 @@ add_library(BookingCore
     ${SRC}/http/api/apimanager.cpp
     ${SRC}/http/api/v1/usershandler.h ${SRC}/http/api/v1/usershandler.cpp
     ${SRC}/appenv.h  ${SRC}/appenv.cpp
+    ${SRC}/db/idbconnection.h
+    ${SRC}/db/mariadbconnection.h ${SRC}/db/mariadbconnection.cpp
+    ${SRC}/db/dbconnectionpool.h
+    ${SRC}/db/dbmanager.h
 )
 
 target_include_directories(BookingCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)

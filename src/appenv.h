@@ -4,35 +4,34 @@
 #include <boost/asio.hpp>
 #include <boost/mysql.hpp>
 #include <boost/process.hpp>
-#include <memory>
 
 namespace mysql = boost::mysql;
 namespace asio = boost::asio;
+
+struct DBConnectionParametrs
+{
+    std::string dbName;
+    std::string pass;
+    std::string host;
+    std::string port;
+    std::string user;
+};
 
 class AppEnv
 {
 public:
     AppEnv();
 
+    DBConnectionParametrs getMariaDBConnectionParametrs() const;
+    int dbConnectionsCount() const;
+
 private:
     int m_dbConnectionsCount;
     int m_httpIoThreadCounts;
-    int m_cpuThreadCounts;
-    std::shared_ptr<mysql::connection_pool> m_dbPool;
-    std::shared_ptr<asio::thread_pool> m_dbThreadPool;
-    std::shared_ptr<asio::thread_pool> m_cpuThreadPool;
 
-    struct DBConnectionParametrs
-    {
-        std::string_view dbName;
-        std::string_view pass;
-        std::string_view host;
-        std::string_view port;
-        std::string_view user;
-    } dbConnParams;
+    DBConnectionParametrs m_mariaDBConnParams;
 
     void readLocalEnvFile();
-    void tryCreateDBPool(const DBConnectionParametrs &connParams);
 };
 
 #endif // APPENV_H
